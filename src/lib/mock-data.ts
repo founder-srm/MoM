@@ -52,13 +52,13 @@ export const MOCK_TRANSCRIPT = `[00:00] Aryan: Alright everyone, let's get start
 
 [02:08] Priya, Rahul, Sneha: Works for us.
 
-[02:12] Aryan: Alright, let's wrap up. We'll do a follow-up on June 5th to check on progress.\`;
+[02:12] Aryan: Alright, let's wrap up. We'll do a follow-up on June 5th to check on progress.`;
 
 export const MOCK_MOM = (form: any) => `**Meeting Title:** ${form.title || "Team Meeting"}
 **Date:** ${new Date(form.date || new Date().toISOString().split("T")[0]).toLocaleDateString("en-IN", {
   day: "2-digit", month: "short", year: "numeric",
 })}
-**Attendees:** \${form.participants || "Team Members"}
+**Attendees:** ${form.participants || "Team Members"}
 **Facilitator:** Meeting Host
 
 ---

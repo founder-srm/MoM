@@ -32,6 +32,8 @@ Optional model settings:
 TRANSCRIPTION_MODEL=small
 TRANSCRIPTION_DEVICE=cpu
 TRANSCRIPTION_COMPUTE_TYPE=int8
+MAX_AUDIO_MB=100
+AUDIO_DOWNLOAD_TIMEOUT_SECONDS=60
 ```
 
 ## Run Locally
@@ -68,3 +70,33 @@ Expected response:
 ```
 
 If the server starts successfully and `/health` responds, the model initialized successfully during startup.
+
+## Transcribe
+
+The `/transcribe` endpoint accepts a JSON body with an audio URL and returns transcript text plus timestamped segments.
+
+```bash
+curl -X POST http://127.0.0.1:8001/transcribe \
+  -H "Content-Type: application/json" \
+  -d '{
+    "audio_url": "https://example.com/sample.mp3",
+    "meeting_id": "meeting-1",
+    "audio_file_id": "audio-1"
+  }'
+```
+
+Expected response shape:
+
+```json
+{
+  "text": "Transcript text",
+  "language": "en",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 2.5,
+      "text": "Transcript text"
+    }
+  ]
+}
+```

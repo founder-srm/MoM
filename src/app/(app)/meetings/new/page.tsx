@@ -1,106 +1,116 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { useMeetingFlow } from "@/components/meeting/meeting-context"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useMeetingFlow } from "@/components/meeting/meeting-context";
 
 export default function NewMeetingPage() {
-  const router = useRouter()
-  const { meetingForm, setMeetingForm } = useMeetingFlow()
-  
-  const [title, setTitle] = useState(meetingForm?.title || "")
-  const [date, setDate] = useState(meetingForm?.date || new Date().toISOString().split("T")[0])
-  const [participants, setParticipants] = useState(meetingForm?.participants || "")
-  const [agenda, setAgenda] = useState(meetingForm?.agenda || "")
+  const router = useRouter();
+  const { meetingForm, setMeetingForm, getOrCreateMeetingId } =
+    useMeetingFlow();
+
+  const [title, setTitle] = useState(meetingForm?.title || "");
+  const [date, setDate] = useState(
+    meetingForm?.date || new Date().toISOString().split("T")[0],
+  );
+  const [participants, setParticipants] = useState(
+    meetingForm?.participants || "",
+  );
+  const [agenda, setAgenda] = useState(meetingForm?.agenda || "");
 
   const handleNext = () => {
-    if (!title) return
-    
+    if (!title) return;
+
     setMeetingForm({
       ...meetingForm,
       title,
       date,
       participants,
-      agenda
-    })
-    
-    // In a real app we would create the meeting in the database here
-    // and get a meeting ID, but for now we'll just go to a dummy route
-    router.push("/meetings/draft-1/record")
-  }
+      agenda,
+    });
+
+    const meetingId = getOrCreateMeetingId();
+    router.push(`/meetings/${meetingId}/record`);
+  };
 
   return (
-    <div className="p-8 md:p-10 max-w-3xl mx-auto w-full">
-      <button 
-        onClick={() => router.push("/dashboard")} 
-        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 transition-colors text-sm font-medium mb-8"
-      >
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-        Back to dashboard
-      </button>
-
-      <div className="mb-10">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">Create New Meeting</h2>
-        <p className="text-[14px] text-slate-500 dark:text-slate-400 mt-1.5">Set up your meeting details before recording or uploading audio.</p>
-      </div>
-
-      <div className="space-y-6 bg-white dark:bg-slate-900/80 p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Meeting Title <span className="text-red-500">*</span></label>
-          <Input 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
-            placeholder="e.g. Q2 Sprint Planning"
-            className="h-12 px-4 rounded-xl text-[14px] border-slate-200 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white focus-visible:ring-blue-600"
-          />
+    <div className="w-full px-6 md:px-12 py-12 md:py-20">
+      <div className="max-w-3xl mx-auto">
+        <div className="text-[clamp(2rem,6vw,4rem)] font-bold uppercase leading-[0.85] tracking-tighter mb-2">
+          New Meeting
         </div>
+        <p className="text-lg text-muted-foreground mb-12">
+          Set up your meeting details
+        </p>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Date</label>
-          <Input 
-            type="date"
-            value={date} 
-            onChange={(e) => setDate(e.target.value)} 
-            className="h-12 px-4 rounded-xl text-[14px] border-slate-200 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white focus-visible:ring-blue-600"
-          />
-        </div>
+        <div className="space-y-8 border-2 border-border p-8 md:p-12">
+          <div>
+            <label className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3">
+              Meeting Title <span className="text-destructive">*</span>
+            </label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Q2 Sprint Planning"
+            />
+          </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Participants</label>
-          <Input 
-            value={participants} 
-            onChange={(e) => setParticipants(e.target.value)} 
-            placeholder="e.g. Aryan, Priya, Rahul"
-            className="h-12 px-4 rounded-xl text-[14px] border-slate-200 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white focus-visible:ring-blue-600"
-          />
-        </div>
+          <div>
+            <label className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3">
+              Date
+            </label>
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Agenda / Description</label>
-          <Textarea 
-            value={agenda} 
-            onChange={(e) => setAgenda(e.target.value)} 
-            placeholder="What topics will be covered?"
-            className="min-h-[120px] p-4 rounded-xl text-[14px] border-slate-200 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white resize-y focus-visible:ring-blue-600"
-          />
-        </div>
+          <div>
+            <label className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3">
+              Participants
+            </label>
+            <Input
+              value={participants}
+              onChange={(e) => setParticipants(e.target.value)}
+              placeholder="e.g. Aryan, Priya, Rahul"
+            />
+          </div>
 
-        <div className="pt-4">
-          <Button 
-            onClick={handleNext} 
-            disabled={!title}
-            className="h-12 px-8 rounded-xl font-semibold shadow-sm w-full sm:w-auto"
-          >
-            Continue to Audio
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className="ml-2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </Button>
+          <div>
+            <label className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3">
+              Agenda / Description
+            </label>
+            <Textarea
+              value={agenda}
+              onChange={(e) => setAgenda(e.target.value)}
+              placeholder="What topics will be covered?"
+              className="min-h-[160px]"
+            />
+          </div>
+
+          <div className="pt-4 flex flex-col sm:flex-row gap-4">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => router.push("/dashboard")}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleNext}
+              disabled={!title}
+              size="lg"
+              className="flex-1"
+            >
+              Continue to Audio →
+            </Button>
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

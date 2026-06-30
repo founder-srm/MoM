@@ -1,27 +1,33 @@
-import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import type { Database } from "@/lib/types/database"
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/types/database";
 
 type TranscribeRequestBody = {
-  meeting_id?: string
-  audio_file_id?: string
-}
+  meeting_id?: string;
+  audio_file_id?: string;
+};
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // Authenticate
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const body: TranscribeRequestBody = await request.json()
-    const { meeting_id, audio_file_id } = body
+    const body: TranscribeRequestBody = await request.json();
+    const { meeting_id, audio_file_id } = body;
 
     if (!meeting_id || !audio_file_id) {
-      return NextResponse.json({ error: "meeting_id and audio_file_id are required" }, { status: 400 })
+      return NextResponse.json(
+        { error: "meeting_id and audio_file_id are required" },
+        { status: 400 },
+      );
     }
 
     // Verify meeting exists and belongs to the authenticated user
@@ -29,14 +35,14 @@ export async function POST(request: Request) {
       .from("meetings")
       .select("user_id")
       .eq("meeting_id", meeting_id)
-      .single()
+      .single();
 
     if (meetingError || !meeting) {
-      return NextResponse.json({ error: "Meeting not found" }, { status: 404 })
+      return NextResponse.json({ error: "Meeting not found" }, { status: 404 });
     }
 
     if (meeting.user_id !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Fetch audio_files row
@@ -44,54 +50,68 @@ export async function POST(request: Request) {
       .from("audio_files")
       .select("storage_url")
       .eq("file_id", audio_file_id)
-      .single()
+      .single();
 
     if (audioError || !audioFile) {
-      return NextResponse.json({ error: "Audio file not found" }, { status: 404 })
+      return NextResponse.json(
+        { error: "Audio file not found" },
+        { status: 404 },
+      );
     }
 
-    const storageUrl: string = audioFile.storage_url
+    const storageUrl: string = audioFile.storage_url;
 
     // Generate signed URL if needed (if storage_url is a storage path rather than absolute URL)
-    let audioUrl = storageUrl
-    const looksLikeAbsolute = /^https?:\/\//i.test(storageUrl)
+    let audioUrl = storageUrl;
+    const looksLikeAbsolute = /^https?:\/\//i.test(storageUrl);
     if (!looksLikeAbsolute) {
-      const bucket = process.env.SUPABASE_AUDIO_BUCKET || "meeting-audio"
-      const expiresSeconds = 60
+      const bucket = process.env.SUPABASE_AUDIO_BUCKET || "meeting-audio";
+      const expiresSeconds = 60;
       const { data: signedData, error: signedError } = await supabase.storage
         .from(bucket)
-        .createSignedUrl(storageUrl, expiresSeconds)
+        .createSignedUrl(storageUrl, expiresSeconds);
 
       if (signedError || !signedData?.signedUrl) {
-        return NextResponse.json({ error: "Failed to create signed URL" }, { status: 500 })
+        return NextResponse.json(
+          { error: "Failed to create signed URL" },
+          { status: 500 },
+        );
       }
 
-      audioUrl = signedData.signedUrl
+      audioUrl = signedData.signedUrl;
     }
 
     // Call transcription service
-    const transcribeServiceUrl = process.env.TRANSCRIBE_SERVICE_URL || "http://127.0.0.1:8001/transcribe"
+    const transcribeServiceUrl =
+      process.env.TRANSCRIBE_SERVICE_URL || "http://127.0.0.1:8001/transcribe";
 
     const svcResp = await fetch(transcribeServiceUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ audio_url: audioUrl, meeting_id, audio_file_id }),
-    })
+    });
 
     if (!svcResp.ok) {
-      const text = await svcResp.text()
-      return NextResponse.json({ error: `Transcription service error: ${text}` }, { status: 502 })
+      const text = await svcResp.text();
+      return NextResponse.json(
+        { error: `Transcription service error: ${text}` },
+        { status: 502 },
+      );
     }
 
-    const svcJson = await svcResp.json()
-    const { text, language, segments } = svcJson
+    const svcJson = await svcResp.json();
+    const { text, language, segments } = svcJson;
 
     if (!text) {
-      return NextResponse.json({ error: "Invalid transcription response" }, { status: 500 })
+      return NextResponse.json(
+        { error: "Invalid transcription response" },
+        { status: 500 },
+      );
     }
 
     // Insert transcript into DB
-    type TranscriptInsert = Database["public"]["Tables"]["transcripts"]["Insert"]
+    type TranscriptInsert =
+      Database["public"]["Tables"]["transcripts"]["Insert"];
     const { data: transcript, error: insertError } = await supabase
       .from("transcripts")
       .insert([
@@ -102,10 +122,13 @@ export async function POST(request: Request) {
         } as TranscriptInsert,
       ])
       .select()
-      .single()
+      .single();
 
     if (insertError || !transcript) {
-      return NextResponse.json({ error: insertError?.message || "Failed to insert transcript" }, { status: 500 })
+      return NextResponse.json(
+        { error: insertError?.message || "Failed to insert transcript" },
+        { status: 500 },
+      );
     }
 
     // Update meeting status to 'transcribed'
@@ -113,14 +136,20 @@ export async function POST(request: Request) {
       .from("meetings")
       .update({ status: "transcribed", updated_at: new Date().toISOString() })
       .eq("meeting_id", meeting_id)
-      .eq("user_id", user.id)
+      .eq("user_id", user.id);
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 })
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ transcript_id: transcript.transcript_id, meeting_id: transcript.meeting_id, transcript_text: transcript.transcript_text })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({
+      transcript_id: transcript.transcript_id,
+      meeting_id: transcript.meeting_id,
+      transcript_text: transcript.transcript_text,
+    });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "An unexpected error occurred";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

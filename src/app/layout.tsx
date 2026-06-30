@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Inter } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import "@/styles/globals.css";
-import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
+import { cn } from "@/lib/utils";
 
-const serif = Instrument_Serif({
-  variable: "--font-serif",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-sans",
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "500", "700"],
 });
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "MoM",
@@ -29,16 +27,15 @@ export default function RootLayout({
       className={cn(
         "h-full",
         "antialiased",
-        serif.variable,
-        inter.variable,
+        spaceGrotesk.variable,
         "font-sans",
       )}
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          enableSystem={false}
           disableTransitionOnChange
         >
           {children}

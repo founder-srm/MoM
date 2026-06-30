@@ -1,49 +1,39 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { Slot } from "radix-ui"
+import { cva, type VariantProps } from "class-variance-authority";
+import type * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-4xl border border-transparent px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3!",
+  "inline-flex items-center justify-center font-bold uppercase tracking-widest text-xs transition-all",
   {
     variants: {
       variant: {
-        default: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 [a]:hover:bg-blue-200 dark:[a]:hover:bg-blue-900",
-        secondary:
-          "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 [a]:hover:bg-slate-200",
-        destructive:
-          "bg-red-500/10 text-red-500 focus-visible:ring-red-500/20 dark:bg-red-900/20 dark:focus-visible:ring-red-900/40 [a]:hover:bg-red-500/20",
-        outline:
-          "border-border text-foreground [a]:hover:bg-slate-100 [a]:hover:text-slate-900 dark:[a]:hover:bg-slate-800",
-        ghost:
-          "hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800",
-        link: "text-blue-600 underline-offset-4 hover:underline dark:text-blue-400",
+        default: "bg-primary text-primary-foreground px-3 py-1",
+        secondary: "bg-secondary text-secondary-foreground px-3 py-1",
+        destructive: "bg-destructive/10 text-destructive px-3 py-1",
+        outline: "border-2 border-border text-foreground px-3 py-1",
+        ghost: "text-muted-foreground",
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  }
-)
+  },
+);
 
 function Badge({
   className,
   variant = "default",
-  asChild = false,
   ...props
-}: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot.Root : "span"
-
+}: React.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
   return (
-    <Comp
+    <span
       data-slot="badge"
       data-variant={variant}
       className={cn(badgeVariants({ variant }), className)}
       {...props}
     />
-  )
+  );
 }
 
-export { Badge, badgeVariants }
+export { Badge, badgeVariants };

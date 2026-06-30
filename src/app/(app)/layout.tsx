@@ -1,17 +1,49 @@
-"use client"
+"use client";
 
-import { AppSidebar } from "@/components/layout/app-sidebar"
-import { MeetingProvider } from "@/components/meeting/meeting-context"
+import { MeetingProvider } from "@/components/meeting/meeting-context";
+import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const isWizard =
+    pathname.includes("/meetings/") && !pathname.endsWith("/dashboard");
+
   return (
-    <div className="flex h-screen bg-slate-50/50 dark:bg-slate-950 font-sora">
-      <AppSidebar />
-      <main className="flex-1 flex flex-col overflow-y-auto">
-        <MeetingProvider>
-          {children}
-        </MeetingProvider>
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Header */}
+      <header className="border-b-2 border-border px-6 md:px-12 py-4 flex items-center justify-between">
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="font-bold uppercase tracking-tighter text-xl hover:text-primary transition-colors"
+        >
+          MoM
+        </button>
+        <div className="flex items-center gap-4">
+          {isWizard && (
+            <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+              New Meeting
+            </span>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              localStorage.removeItem("userEmail");
+              router.push("/login");
+            }}
+          >
+            Sign Out
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="w-full">
+        <MeetingProvider>{children}</MeetingProvider>
       </main>
     </div>
-  )
+  );
 }

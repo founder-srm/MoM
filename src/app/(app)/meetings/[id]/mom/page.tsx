@@ -1,122 +1,112 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { useMeetingFlow } from "@/components/meeting/meeting-context"
-import { MomRenderer } from "@/components/meeting/mom-renderer"
-import { MOCK_MOM } from "@/lib/mock-data"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { useMeetingFlow } from "@/components/meeting/meeting-context";
+import { MomRenderer } from "@/components/meeting/mom-renderer";
+import { MOCK_MOM } from "@/lib/mock-data";
 
 export default function MomViewerPage() {
-  const router = useRouter()
-  const { meetingData } = useMeetingFlow()
-  
-  const [step, setStep] = useState<"generating" | "view">("generating")
-  const [progress, setProgress] = useState(0)
-  const [momText, setMomText] = useState("")
-  const [editing, setEditing] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const router = useRouter();
+  const { meetingData, meetingId } = useMeetingFlow();
+
+  const [step, setStep] = useState<"generating" | "view">("generating");
+  const [progress, setProgress] = useState(0);
+  const [momText, setMomText] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (step !== "generating") return
+    if (step !== "generating") return;
     const iv = setInterval(() => {
-      setProgress(p => {
+      setProgress((p) => {
         if (p >= 100) {
-          clearInterval(iv)
-          setMomText(MOCK_MOM(meetingData || {}))
-          setStep("view")
-          return 100
+          clearInterval(iv);
+          setMomText(MOCK_MOM(meetingData || {}));
+          setStep("view");
+          return 100;
         }
-        return p + Math.random() * 10 + 3
-      })
-    }, 180)
-    return () => clearInterval(iv)
-  }, [step, meetingData])
+        return p + Math.random() * 10 + 3;
+      });
+    }, 180);
+    return () => clearInterval(iv);
+  }, [step, meetingData]);
 
   const copy = () => {
-    navigator.clipboard?.writeText(momText.replace(/\\*\\*/g, ""))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    navigator.clipboard?.writeText(momText.replace(/\*\*/g, ""));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleSave = () => {
-    // Save to dashboard flow logic here
-    router.push("/dashboard")
-  }
+    router.push("/dashboard");
+  };
 
   if (step === "generating") {
     return (
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="text-center max-w-sm w-full">
-          <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-6 shadow-inner">
-            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#059669" strokeWidth="1.8">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
+      <div className="min-h-[80vh] flex items-center justify-center px-6">
+        <div className="text-center max-w-lg w-full">
+          <div className="text-[clamp(3rem,8vw,5rem)] font-bold uppercase leading-none text-primary mb-6">
+            Generating
           </div>
-          <h3 className="text-xl font-semibold text-slate-900 mb-2">Generating Minutes…</h3>
-          <p className="text-[14px] text-slate-500 mb-8">AI is analyzing the transcript and composing your meeting minutes.</p>
-          <Progress value={progress} className="h-2.5 mb-3 bg-slate-100 [&>div]:bg-emerald-500" />
-          <p className="text-[13px] font-mono text-emerald-600 font-medium">{Math.round(progress)}%</p>
+          <p className="text-xl text-muted-foreground mb-8">
+            AI is composing your meeting minutes
+          </p>
+          <Progress value={progress} className="h-2 mb-3" />
+          <p className="font-bold text-primary font-mono text-lg">
+            {Math.round(progress)}%
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="p-8 md:p-10 max-w-4xl mx-auto w-full flex flex-col h-full">
-      <button 
-        onClick={() => router.push("/meetings/draft-1/transcript")} 
-        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm font-medium mb-8 shrink-0"
-      >
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-        Back
-      </button>
-
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4 shrink-0">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Minutes of Meeting</h2>
-            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-none">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5" />
-              completed
-            </Badge>
+    <div className="w-full px-6 md:px-12 py-12 md:py-20 min-h-screen flex flex-col">
+      <div className="max-w-4xl mx-auto w-full flex flex-col flex-1">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6 shrink-0">
+          <div>
+            <div className="text-[clamp(2rem,6vw,4rem)] font-bold uppercase leading-[0.85] tracking-tighter mb-2">
+              Minutes of Meeting
+            </div>
+            <p className="text-lg text-muted-foreground">
+              Generated by AI · Ready to save or export
+            </p>
           </div>
-          <p className="text-[14px] text-slate-500">Generated by AI · Ready to save or export</p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => setEditing(!editing)} className="h-10 rounded-xl px-4 text-[13px] font-semibold border-slate-200">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="mr-1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-            {editing ? "Preview" : "Edit"}
-          </Button>
-          <Button variant="outline" onClick={copy} className="h-10 rounded-xl px-4 text-[13px] font-semibold border-slate-200">
-            {copied ? (
-              <><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth="2" className="mr-1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Copied!</>
-            ) : (
-              <><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="mr-1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Copy</>
-            )}
-          </Button>
-          <Button onClick={handleSave} className="h-10 rounded-xl px-5 text-[13px] font-semibold shadow-sm">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="mr-1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
-            Save to Archive
-          </Button>
-        </div>
-      </div>
 
-      <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-8 min-h-[500px]">
-        {editing ? (
-          <Textarea 
-            value={momText} 
-            onChange={e => setMomText(e.target.value)} 
-            className="w-full h-full min-h-[400px] border-none shadow-none focus-visible:ring-0 p-0 text-[14px] leading-relaxed text-slate-700 font-mono resize-none"
-          />
-        ) : (
-          <MomRenderer text={momText} />
-        )}
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditing(!editing)}
+            >
+              {editing ? "Preview" : "Edit"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={copy}>
+              {copied ? "Copied!" : "Copy"}
+            </Button>
+            <Button onClick={handleSave} size="sm">
+              Save to Archive
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex-1 border-2 border-border p-8 min-h-[600px]">
+          {editing ? (
+            <Textarea
+              value={momText}
+              onChange={(e) => setMomText(e.target.value)}
+              className="w-full h-full min-h-[500px] border-none p-0 text-lg leading-relaxed resize-none"
+            />
+          ) : (
+            <MomRenderer text={momText} />
+          )}
+        </div>
       </div>
     </div>
-  )
+  );
 }

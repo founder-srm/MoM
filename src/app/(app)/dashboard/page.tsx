@@ -1,23 +1,56 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { useMeetingFlow } from "@/components/meeting/meeting-context";
-import { MOCK_MEETINGS } from "@/lib/mock-data";
+import type { Database } from "@/lib/types/database";
+
+type Meeting = Database["public"]["Tables"]["meetings"]["Row"];
 
 export default function DashboardPage() {
   const router = useRouter();
   const { setMeetingForm } = useMeetingFlow();
   const [search, setSearch] = useState("");
-  const [meetings] = useState(MOCK_MEETINGS);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadMeetings() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      const response = await fetch("/api/meetings");
+      const result = await response.json();
+
+      if (!isMounted) return;
+
+      if (!response.ok) {
+        setErrorMessage(result.error || "Failed to load meetings");
+        setIsLoading(false);
+        return;
+      }
+
+      setMeetings(result);
+      setIsLoading(false);
+    }
+
+    loadMeetings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filtered = meetings.filter(
     (m) =>
       m.title.toLowerCase().includes(search.toLowerCase()) ||
-      m.participants.toLowerCase().includes(search.toLowerCase()),
+      (m.participants || "").toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleNewMeeting = () => {
@@ -25,7 +58,7 @@ export default function DashboardPage() {
     router.push("/meetings/new");
   };
 
-  const handleMeetingClick = (meetingId: number) => {
+  const handleMeetingClick = (meetingId: string) => {
     router.push(`/meetings/${meetingId}`);
   };
 
@@ -96,7 +129,19 @@ export default function DashboardPage() {
       {/* Meetings List */}
       <div className="px-6 md:px-12 py-12 md:py-20">
         <div className="max-w-[95vw] md:max-w-6xl mx-auto">
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <div className="border-2 border-border p-12 text-center">
+              <p className="text-xl font-bold uppercase tracking-tighter text-muted-foreground">
+                Loading meetings
+              </p>
+            </div>
+          ) : errorMessage ? (
+            <div className="border-2 border-border p-12 text-center">
+              <p className="text-xl font-bold uppercase tracking-tighter text-destructive">
+                {errorMessage}
+              </p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="border-2 border-border p-12 text-center">
               <div className="text-[clamp(4rem,10vw,8rem)] font-bold leading-none text-muted opacity-20 mb-6">
                 {search ? "0" : "?"}
@@ -114,9 +159,9 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-4">
               {filtered.map((m) => (
                 <button
-                  key={m.id}
+                  key={m.meeting_id}
                   type="button"
-                  onClick={() => handleMeetingClick(m.id)}
+                  onClick={() => handleMeetingClick(m.meeting_id)}
                   className="group flex flex-col md:flex-row md:items-center justify-between border-2 border-border p-6 md:p-8 text-left hover:bg-primary hover:border-primary hover:text-primary-foreground transition-all duration-300"
                 >
                   <div className="flex-1 min-w-0">
@@ -127,13 +172,13 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground group-hover:text-primary-foreground/70 transition-colors duration-300">
                       <span>
-                        {new Date(m.date).toLocaleDateString("en-IN", {
+                        {new Date(m.date || m.created_at || "").toLocaleDateString("en-IN", {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
                         })}
                       </span>
-                      <span>{m.participants}</span>
+                      {m.participants && <span>{m.participants}</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-4 mt-4 md:mt-0 shrink-0">

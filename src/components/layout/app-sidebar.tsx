@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { createClient } from "@/lib/supabase/client";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -11,9 +12,19 @@ export function AppSidebar() {
   const [email, setEmail] = useState("user@example.com");
 
   useEffect(() => {
-    const saved = localStorage.getItem("userEmail");
-    if (saved) setEmail(saved);
+    const supabase = createClient();
+
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) setEmail(data.user.email);
+    });
   }, []);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
 
   const navItems = [
     {
@@ -99,10 +110,7 @@ export function AppSidebar() {
           </div>
         </div>
         <button
-          onClick={() => {
-            localStorage.removeItem("userEmail");
-            router.push("/login");
-          }}
+          onClick={handleSignOut}
           className="w-full py-2 border border-white/10 rounded-lg bg-transparent text-slate-400 text-xs hover:bg-white/5 transition-colors"
         >
           Sign out

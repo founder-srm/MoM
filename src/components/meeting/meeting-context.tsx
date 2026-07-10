@@ -10,6 +10,7 @@ type MeetingContextType = {
   meetingData: MeetingForm | null;
   setMeetingData: (data: MeetingForm | null) => void;
   meetingId: string | null;
+  setMeetingId: (id: string | null) => void;
   getOrCreateMeetingId: () => string;
 };
 
@@ -37,6 +38,7 @@ export function MeetingProvider({ children }: { children: React.ReactNode }) {
         meetingData,
         setMeetingData,
         meetingId,
+        setMeetingId,
         getOrCreateMeetingId,
       }}
     >

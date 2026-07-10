@@ -41,6 +41,7 @@ export async function POST(request: Request) {
     const title: string = body.title;
     const date: string | null = body.date ?? null;
     const description: string | null = body.description ?? null;
+    const participants: string | null = body.participants ?? null;
     const status: string = body.status ?? "processing";
 
     if (!title) {
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
         title,
         date,
         description,
+        participants,
         status,
       })
       .select()

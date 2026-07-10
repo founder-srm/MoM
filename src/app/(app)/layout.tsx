@@ -3,6 +3,7 @@
 import { MeetingProvider } from "@/components/meeting/meeting-context";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -10,6 +11,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const isWizard =
     pathname.includes("/meetings/") && !pathname.endsWith("/dashboard");
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -30,10 +38,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
-              localStorage.removeItem("userEmail");
-              router.push("/login");
-            }}
+            onClick={handleSignOut}
           >
             Sign Out
           </Button>

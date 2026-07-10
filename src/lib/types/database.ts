@@ -45,7 +45,8 @@ export interface Database {
           title: string;
           date: string | null;
           description: string | null;
-          status: string | null;
+          participants: string | null;
+          status: string;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -55,7 +56,8 @@ export interface Database {
           title: string;
           date?: string | null;
           description?: string | null;
-          status?: string | null;
+          participants?: string | null;
+          status?: string;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -65,7 +67,8 @@ export interface Database {
           title?: string;
           date?: string | null;
           description?: string | null;
-          status?: string | null;
+          participants?: string | null;
+          status?: string;
           created_at?: string | null;
           updated_at?: string | null;
         };

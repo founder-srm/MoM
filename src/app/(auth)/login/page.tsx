@@ -4,19 +4,55 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [tab, setTab] = useState<"login" | "signup">("login");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      localStorage.setItem("userEmail", email);
-      router.push("/dashboard");
+
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    const supabase = createClient();
+
+    const { error } =
+      tab === "login"
+        ? await supabase.auth.signInWithPassword({
+            email,
+            password,
+          })
+        : await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                name: fullName,
+              },
+            },
+          });
+
+    setIsSubmitting(false);
+
+    if (error) {
+      setErrorMessage(error.message);
+      return;
     }
+
+    if (tab === "login") {
+      router.push("/dashboard");
+      router.refresh();
+      return;
+    }
+
+    setErrorMessage("Account created. Check your email to confirm your signup.");
   };
 
   return (
@@ -64,7 +100,12 @@ export default function LoginPage() {
                 <label className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3">
                   Full Name
                 </label>
-                <Input type="text" placeholder="Full Name" />
+                <Input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Full Name"
+                />
               </div>
             )}
 
@@ -94,8 +135,21 @@ export default function LoginPage() {
               />
             </div>
 
-            <Button type="submit" size="lg" className="w-full">
-              {tab === "login" ? "Sign In" : "Create Account"}
+            {errorMessage && (
+              <p className="text-sm text-muted-foreground">{errorMessage}</p>
+            )}
+
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? "Please wait..."
+                : tab === "login"
+                  ? "Sign In"
+                  : "Create Account"}
             </Button>
           </form>
 

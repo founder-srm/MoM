@@ -9,8 +9,7 @@ import { useMeetingFlow } from "@/components/meeting/meeting-context";
 
 export default function NewMeetingPage() {
   const router = useRouter();
-  const { meetingForm, setMeetingForm, getOrCreateMeetingId } =
-    useMeetingFlow();
+  const { meetingForm, setMeetingForm, setMeetingId } = useMeetingFlow();
 
   const [title, setTitle] = useState(meetingForm?.title || "");
   const [date, setDate] = useState(
@@ -20,9 +19,37 @@ export default function NewMeetingPage() {
     meetingForm?.participants || "",
   );
   const [agenda, setAgenda] = useState(meetingForm?.agenda || "");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!title) return;
+
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    const meetingPayload = {
+      title,
+      date,
+      description: agenda,
+      participants,
+    };
+
+    const response = await fetch("/api/meetings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(meetingPayload),
+    });
+
+    const result = await response.json();
+    setIsSubmitting(false);
+
+    if (!response.ok) {
+      setErrorMessage(result.error || "Failed to create meeting");
+      return;
+    }
 
     setMeetingForm({
       ...meetingForm,
@@ -32,8 +59,8 @@ export default function NewMeetingPage() {
       agenda,
     });
 
-    const meetingId = getOrCreateMeetingId();
-    router.push(`/meetings/${meetingId}/record`);
+    setMeetingId(result.meeting_id);
+    router.push(`/meetings/${result.meeting_id}/record`);
   };
 
   return (
@@ -92,6 +119,10 @@ export default function NewMeetingPage() {
             />
           </div>
 
+          {errorMessage && (
+            <p className="text-sm text-destructive">{errorMessage}</p>
+          )}
+
           <div className="pt-4 flex flex-col sm:flex-row gap-4">
             <Button
               variant="outline"
@@ -102,11 +133,11 @@ export default function NewMeetingPage() {
             </Button>
             <Button
               onClick={handleNext}
-              disabled={!title}
+              disabled={!title || isSubmitting}
               size="lg"
               className="flex-1"
             >
-              Continue to Audio →
+              {isSubmitting ? "Creating..." : "Continue to Audio →"}
             </Button>
           </div>
         </div>

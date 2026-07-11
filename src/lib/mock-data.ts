@@ -5,7 +5,8 @@ export const MOCK_MEETINGS = [
     date: "2026-05-28",
     participants: "Aryan, Priya, Rahul, Sneha",
     status: "completed",
-    summary: "Discussed feature priorities for Q2 sprint. Decided to focus on auth module first.",
+    summary:
+      "Discussed feature priorities for Q2 sprint. Decided to focus on auth module first.",
     mom: `**Meeting Title:** Q2 Sprint Planning\n**Date:** May 28, 2026\n**Attendees:** Aryan, Priya, Rahul, Sneha\n\n**Agenda:**\n1. Feature prioritization\n2. Timeline review\n3. Resource allocation\n\n**Discussion Points:**\n- Auth module identified as critical path item\n- Design handoff scheduled for June 3rd\n- API documentation needs update before dev begins\n\n**Decisions Made:**\n- Auth module moves to top of backlog\n- Weekly syncs every Monday 10am\n\n**Action Items:**\n- Aryan: finalize API spec by June 2\n- Priya: update UI designs by June 3\n- Rahul: set up staging environment\n\n**Next Steps:**\nFollow-up meeting on June 5 to review progress.`,
   },
   {
@@ -14,7 +15,8 @@ export const MOCK_MEETINGS = [
     date: "2026-05-20",
     participants: "Meera, Dev, Aisha",
     status: "completed",
-    summary: "Reviewed H2 roadmap milestones and adjusted timelines based on engineering capacity.",
+    summary:
+      "Reviewed H2 roadmap milestones and adjusted timelines based on engineering capacity.",
     mom: `**Meeting Title:** Product Roadmap Review\n**Date:** May 20, 2026\n**Attendees:** Meera, Dev, Aisha\n\n**Discussion Points:**\n- H2 milestone review\n- Timeline adjustments\n\n**Decisions Made:**\n- MVP launch pushed to August\n\n**Action Items:**\n- Dev: update Jira board\n- Meera: inform stakeholders`,
   },
   {
@@ -23,7 +25,8 @@ export const MOCK_MEETINGS = [
     date: "2026-05-15",
     participants: "Tara, Kiran, Yash",
     status: "completed",
-    summary: "Established design tokens and component library structure for the new system.",
+    summary:
+      "Established design tokens and component library structure for the new system.",
     mom: `**Meeting Title:** Design System Kickoff\n**Date:** May 15, 2026\n**Attendees:** Tara, Kiran, Yash\n\n**Discussion Points:**\n- Design token structure\n- Component library tooling\n\n**Decisions Made:**\n- Use Figma + Storybook combo\n\n**Action Items:**\n- Tara: create initial token set\n- Kiran: set up Storybook`,
   },
 ];
@@ -54,9 +57,15 @@ export const MOCK_TRANSCRIPT = `[00:00] Aryan: Alright everyone, let's get start
 
 [02:12] Aryan: Alright, let's wrap up. We'll do a follow-up on June 5th to check on progress.`;
 
-export const MOCK_MOM = (form: any) => `**Meeting Title:** ${form.title || "Team Meeting"}
-**Date:** ${new Date(form.date || new Date().toISOString().split("T")[0]).toLocaleDateString("en-IN", {
-  day: "2-digit", month: "short", year: "numeric",
+export const MOCK_MOM = (
+  form: any,
+) => `**Meeting Title:** ${form.title || "Team Meeting"}
+**Date:** ${new Date(
+  form.date || new Date().toISOString().split("T")[0],
+).toLocaleDateString("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
 })}
 **Attendees:** ${form.participants || "Team Members"}
 **Facilitator:** Meeting Host

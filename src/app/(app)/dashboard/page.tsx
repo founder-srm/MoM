@@ -1,87 +1,198 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { StatsCards } from "@/components/dashboard/stats-cards"
-import { MeetingCard } from "@/components/dashboard/meeting-card"
-import { useMeetingFlow } from "@/components/meeting/meeting-context"
-import { MOCK_MEETINGS } from "@/lib/mock-data"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { StatusBadge } from "@/components/dashboard/status-badge";
+import { useMeetingFlow } from "@/components/meeting/meeting-context";
+import type { Database } from "@/lib/types/database";
+
+type Meeting = Database["public"]["Tables"]["meetings"]["Row"];
 
 export default function DashboardPage() {
-  const router = useRouter()
-  const { setMeetingForm } = useMeetingFlow()
-  const [search, setSearch] = useState("")
+  const router = useRouter();
+  const { setMeetingForm } = useMeetingFlow();
+  const [search, setSearch] = useState("");
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Using mock meetings for now. This will be replaced with Supabase data later.
-  const [meetings] = useState(MOCK_MEETINGS)
+  useEffect(() => {
+    let isMounted = true;
 
-  const filtered = meetings.filter(m =>
-    m.title.toLowerCase().includes(search.toLowerCase()) ||
-    m.participants.toLowerCase().includes(search.toLowerCase())
-  )
+    async function loadMeetings() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      const response = await fetch("/api/meetings");
+      const result = await response.json();
+
+      if (!isMounted) return;
+
+      if (!response.ok) {
+        setErrorMessage(result.error || "Failed to load meetings");
+        setIsLoading(false);
+        return;
+      }
+
+      setMeetings(result);
+      setIsLoading(false);
+    }
+
+    loadMeetings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filtered = meetings.filter(
+    (m) =>
+      m.title.toLowerCase().includes(search.toLowerCase()) ||
+      (m.participants || "").toLowerCase().includes(search.toLowerCase()),
+  );
 
   const handleNewMeeting = () => {
-    setMeetingForm(null)
-    router.push("/meetings/new")
-  }
+    setMeetingForm(null);
+    router.push("/meetings/new");
+  };
 
-  const handleMeetingClick = (meetingId: number) => {
-    router.push(`/meetings/${meetingId}`)
-  }
+  const handleMeetingClick = (meetingId: string) => {
+    router.push(`/meetings/${meetingId}`);
+  };
 
   return (
-    <div className="p-8 md:p-10 max-w-6xl mx-auto w-full">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">Your Meetings</h2>
-          <p className="text-[14px] text-slate-500 dark:text-slate-400 mt-1">{meetings.length} meeting records saved</p>
+    <div className="w-full">
+      {/* Hero Section */}
+      <div className="border-b-2 border-border px-6 md:px-12 py-16 md:py-24">
+        <div className="max-w-[95vw] md:max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+            <div>
+              <h1 className="text-[clamp(2.5rem,8vw,6rem)] font-bold uppercase leading-[0.85] tracking-tighter">
+                Your Meetings
+              </h1>
+              <p className="text-lg md:text-xl text-muted-foreground mt-4">
+                {meetings.length} meeting records saved
+              </p>
+            </div>
+            <Button onClick={handleNewMeeting} size="lg">
+              + New Meeting
+            </Button>
+          </div>
+
+          {/* Search */}
+          <div className="mt-12 max-w-xl">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search meetings or participants"
+            />
+          </div>
         </div>
-        <Button onClick={handleNewMeeting} className="h-11 px-5 rounded-xl font-semibold shadow-sm">
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className="mr-2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          New Meeting
-        </Button>
       </div>
 
-      <StatsCards 
-        meetingsCount={meetings.length}
-        thisMonthCount={meetings.filter(m => m.date.startsWith("2026-05")).length}
-        completedCount={meetings.filter(m => m.status === "completed").length}
-      />
-
-      <div className="relative mb-6">
-        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-          <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="m21 21-4.35-4.35" />
-        </svg>
-        <Input 
-          value={search} 
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search meetings or participants…" 
-          className="pl-12 h-12 rounded-xl bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 shadow-sm text-[14px] dark:text-slate-200 dark:placeholder:text-slate-500 focus-visible:ring-blue-600"
-        />
-      </div>
-
-      <div className="flex flex-col gap-3">
-        {filtered.map(m => (
-          <MeetingCard 
-            key={m.id} 
-            meeting={m} 
-            onClick={() => handleMeetingClick(m.id)} 
-          />
-        ))}
-      </div>
-
-      {filtered.length === 0 && (
-        <div className="text-center py-20 text-slate-400">
-          <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" className="mx-auto mb-4 opacity-50">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          <p className="text-[15px] font-medium">No meetings found</p>
+      {/* Stats Marquee */}
+      <div className="border-b-2 border-border py-6 overflow-hidden bg-primary/5">
+        <div className="flex gap-16 animate-marquee whitespace-nowrap">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex gap-16 shrink-0">
+              <div className="flex items-center gap-4">
+                <span className="text-[clamp(2rem,5vw,4rem)] font-bold leading-none text-primary">
+                  {meetings.length}
+                </span>
+                <span className="text-sm uppercase tracking-widest font-bold text-muted-foreground">
+                  Total Meetings
+                </span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-[clamp(2rem,5vw,4rem)] font-bold leading-none text-primary">
+                  {meetings.filter((m) => m.status === "completed").length}
+                </span>
+                <span className="text-sm uppercase tracking-widest font-bold text-muted-foreground">
+                  Completed
+                </span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-[clamp(2rem,5vw,4rem)] font-bold leading-none text-muted-foreground">
+                  ✦
+                </span>
+                <span className="text-sm uppercase tracking-widest font-bold text-muted-foreground">
+                  AI Powered
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
+
+      {/* Meetings List */}
+      <div className="px-6 md:px-12 py-12 md:py-20">
+        <div className="max-w-[95vw] md:max-w-6xl mx-auto">
+          {isLoading ? (
+            <div className="border-2 border-border p-12 text-center">
+              <p className="text-xl font-bold uppercase tracking-tighter text-muted-foreground">
+                Loading meetings
+              </p>
+            </div>
+          ) : errorMessage ? (
+            <div className="border-2 border-border p-12 text-center">
+              <p className="text-xl font-bold uppercase tracking-tighter text-destructive">
+                {errorMessage}
+              </p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="border-2 border-border p-12 text-center">
+              <div className="text-[clamp(4rem,10vw,8rem)] font-bold leading-none text-muted opacity-20 mb-6">
+                {search ? "0" : "?"}
+              </div>
+              <p className="text-xl font-bold uppercase tracking-tighter text-muted-foreground">
+                {search ? "No meetings found" : "No meetings yet"}
+              </p>
+              {!search && (
+                <Button onClick={handleNewMeeting} size="lg" className="mt-8">
+                  Create Your First Meeting
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {filtered.map((m) => (
+                <button
+                  key={m.meeting_id}
+                  type="button"
+                  onClick={() => handleMeetingClick(m.meeting_id)}
+                  className="group flex flex-col md:flex-row md:items-center justify-between border-2 border-border p-6 md:p-8 text-left hover:bg-primary hover:border-primary hover:text-primary-foreground transition-all duration-300"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-4 mb-2">
+                      <span className="text-[clamp(1.5rem,3vw,2.5rem)] font-bold uppercase tracking-tighter leading-none group-hover:text-primary-foreground transition-colors duration-300">
+                        {m.title}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground group-hover:text-primary-foreground/70 transition-colors duration-300">
+                      <span>
+                        {new Date(m.date || m.created_at || "").toLocaleDateString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                      {m.participants && <span>{m.participants}</span>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 mt-4 md:mt-0 shrink-0">
+                    <StatusBadge status={m.status} />
+                    <span className="text-2xl group-hover:translate-x-2 transition-transform duration-300">
+                      →
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
-  )
+  );
 }

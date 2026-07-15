@@ -131,6 +131,7 @@ export default function LoginPage() {
                 required
               />
             </div>
+          </div>
 
             <div>
               <label
@@ -148,35 +149,7 @@ export default function LoginPage() {
                 required
               />
             </div>
-
-            {errorMessage && (
-              <p className="text-sm text-muted-foreground">{errorMessage}</p>
-            )}
-
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full"
-              disabled={isSubmitting}
-            >
-              {isSubmitting
-                ? "Please wait..."
-                : tab === "login"
-                  ? "Sign In"
-                  : "Create Account"}
-            </Button>
-          </form>
-
-          {tab === "login" && (
-            <p className="text-center mt-8 text-sm text-muted-foreground">
-              <button
-                type="button"
-                className="text-primary hover:underline font-bold uppercase tracking-wider"
-              >
-                Forgot Password?
-              </button>
-            </p>
-          )}
+          </div>
         </div>
       </div>
     </div>

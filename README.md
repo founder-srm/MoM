@@ -158,7 +158,7 @@ SUPABASE_AUDIO_BUCKET=meeting-audio
 
 ## Guides
   1. Find the Shadcn guides [here](./docs/guides/shadcn.md)
-
+  2. Read the project documentation [here](./docs/project-documentation.md)
 
 
 ## License

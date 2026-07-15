@@ -8,4 +8,5 @@ export type MeetingForm = {
   mom?: string;
   status?: string;
   summary?: string;
+  audioFileId?: string;
 };

@@ -57,9 +57,12 @@ export const MOCK_TRANSCRIPT = `[00:00] Aryan: Alright everyone, let's get start
 
 [02:12] Aryan: Alright, let's wrap up. We'll do a follow-up on June 5th to check on progress.`;
 
-export const MOCK_MOM = (
-  form: any,
-) => `**Meeting Title:** ${form.title || "Team Meeting"}
+export const MOCK_MOM = (form: {
+  title?: string;
+  date?: string;
+  participants?: string;
+  agenda?: string;
+}) => `**Meeting Title:** ${form.title || "Team Meeting"}
 **Date:** ${new Date(
   form.date || new Date().toISOString().split("T")[0],
 ).toLocaleDateString("en-IN", {

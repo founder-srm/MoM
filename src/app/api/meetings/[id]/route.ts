@@ -5,7 +5,7 @@ import type { Database } from "@/lib/types/database";
 type MeetingUpdate = Database["public"]["Tables"]["meetings"]["Update"];
 
 export async function GET(
-  request: Request,
+  _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const supabase = await createClient();

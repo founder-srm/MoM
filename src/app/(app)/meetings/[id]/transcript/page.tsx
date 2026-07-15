@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { transcribeAudio } from "@/actions/transcribe";
+import { useMeetingFlow } from "@/components/meeting/meeting-context";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { useMeetingFlow } from "@/components/meeting/meeting-context";
-import { MOCK_TRANSCRIPT } from "@/lib/mock-data";
 
 export default function TranscriptPage() {
   const router = useRouter();
@@ -15,23 +15,69 @@ export default function TranscriptPage() {
 
   const [step, setStep] = useState<"processing" | "review">("processing");
   const [progress, setProgress] = useState(0);
-  const [transcript, setTranscript] = useState(MOCK_TRANSCRIPT);
+  const [transcript, setTranscript] = useState("");
   const [edited, setEdited] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (step !== "processing") return;
-    const iv = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          clearInterval(iv);
+
+    const processAudio = async () => {
+      if (!meetingData?.audioFileId) {
+        setError("Audio file not found. Please try again.");
+        setStep("review");
+        return;
+      }
+
+      const iv = setInterval(() => {
+        setProgress((p) => {
+          if (p >= 90) {
+            clearInterval(iv);
+            return 90;
+          }
+          return p + Math.random() * 10 + 5;
+        });
+      }, 300);
+
+      if (!meetingId) {
+        setError("Meeting ID not found. Please try again.");
+        setStep("review");
+        return;
+      }
+
+      try {
+        const result = await transcribeAudio(
+          meetingId,
+          meetingData.audioFileId,
+        );
+
+        clearInterval(iv);
+        setProgress(100);
+
+        if (result.success && result.transcript_text) {
+          setTranscript(result.transcript_text);
+          setMeetingData({
+            ...meetingData,
+            transcript: result.transcript_text,
+          });
+          setTimeout(() => setStep("review"), 500);
+        } else {
+          setError(
+            result.error || "Unable to process audio. Please try again.",
+          );
           setStep("review");
-          return 100;
         }
-        return p + Math.random() * 15 + 5;
-      });
-    }, 300);
-    return () => clearInterval(iv);
-  }, [step]);
+      } catch (_err) {
+        clearInterval(iv);
+        setError(
+          "Unable to connect to transcription service. Please try again later.",
+        );
+        setStep("review");
+      }
+    };
+
+    processAudio();
+  }, [step, meetingId, meetingData, setMeetingData]);
 
   const handleNext = () => {
     if (meetingData) {
@@ -48,7 +94,7 @@ export default function TranscriptPage() {
             Transcribing
           </div>
           <p className="text-xl text-muted-foreground mb-8">
-            Converting speech to text using AI
+            Converting speech to text using Faster-Whisper
           </p>
           <Progress value={progress} className="h-2 mb-3" />
           <p className="font-bold text-primary font-mono text-lg">
@@ -70,6 +116,11 @@ export default function TranscriptPage() {
           {edited && (
             <Badge variant="secondary" className="ml-3">
               Edited
+            </Badge>
+          )}
+          {error && (
+            <Badge variant="destructive" className="ml-3">
+              {error}
             </Badge>
           )}
         </p>

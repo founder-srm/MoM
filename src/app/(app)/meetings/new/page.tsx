@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useMeetingFlow } from "@/components/meeting/meeting-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useMeetingFlow } from "@/components/meeting/meeting-context";
 
 export default function NewMeetingPage() {
   const router = useRouter();
@@ -75,10 +75,14 @@ export default function NewMeetingPage() {
 
         <div className="space-y-8 border-2 border-border p-8 md:p-12">
           <div>
-            <label className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3">
+            <label
+              htmlFor="title"
+              className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3"
+            >
               Meeting Title <span className="text-destructive">*</span>
             </label>
             <Input
+              id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Q2 Sprint Planning"
@@ -86,10 +90,14 @@ export default function NewMeetingPage() {
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3">
+            <label
+              htmlFor="date"
+              className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3"
+            >
               Date
             </label>
             <Input
+              id="date"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
@@ -97,10 +105,14 @@ export default function NewMeetingPage() {
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3">
+            <label
+              htmlFor="participants"
+              className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3"
+            >
               Participants
             </label>
             <Input
+              id="participants"
               value={participants}
               onChange={(e) => setParticipants(e.target.value)}
               placeholder="e.g. Aryan, Priya, Rahul"
@@ -108,10 +120,14 @@ export default function NewMeetingPage() {
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3">
+            <label
+              htmlFor="agenda"
+              className="block text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3"
+            >
               Agenda / Description
             </label>
             <Textarea
+              id="agenda"
               value={agenda}
               onChange={(e) => setAgenda(e.target.value)}
               placeholder="What topics will be covered?"

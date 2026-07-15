@@ -1,8 +1,4 @@
-export function StatsCards({
-  meetingsCount,
-  thisMonthCount,
-  completedCount,
-}: {
+export function StatsCards(_props: {
   meetingsCount: number;
   thisMonthCount: number;
   completedCount: number;

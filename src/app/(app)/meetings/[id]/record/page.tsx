@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { useRef, useState } from "react";
 import { useMeetingFlow } from "@/components/meeting/meeting-context";
+import { Button } from "@/components/ui/button";
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
 
 export default function RecordAudioPage() {

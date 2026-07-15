@@ -1,7 +1,7 @@
 "use client";
 
-import { MeetingProvider } from "@/components/meeting/meeting-context";
 import { usePathname, useRouter } from "next/navigation";
+import { MeetingProvider } from "@/components/meeting/meeting-context";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
@@ -24,6 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Header */}
       <header className="border-b-2 border-border px-6 md:px-12 py-4 flex items-center justify-between">
         <button
+          type="button"
           onClick={() => router.push("/dashboard")}
           className="font-bold uppercase tracking-tighter text-xl hover:text-primary transition-colors"
         >
@@ -35,11 +36,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               New Meeting
             </span>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSignOut}
-          >
+          <Button variant="ghost" size="sm" onClick={handleSignOut}>
             Sign Out
           </Button>
         </div>

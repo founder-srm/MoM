@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { useMeetingFlow } from "@/components/meeting/meeting-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { Database } from "@/lib/types/database";
 
 type Meeting = Database["public"]["Tables"]["meetings"]["Row"];
@@ -172,7 +172,9 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground group-hover:text-primary-foreground/70 transition-colors duration-300">
                       <span>
-                        {new Date(m.date || m.created_at || "").toLocaleDateString("en-IN", {
+                        {new Date(
+                          m.date || m.created_at || "",
+                        ).toLocaleDateString("en-IN", {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
